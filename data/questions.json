@@ -1,0 +1,93 @@
+[
+  {
+    "question": "What is the capital of France?",
+    "options": ["London", "Berlin", "Paris", "Madrid"],
+    "correct": 2,
+    "difficulty": "easy"
+  },
+  {
+    "question": "Which planet is known as the Red Planet?",
+    "options": ["Venus", "Mars", "Jupiter", "Saturn"],
+    "correct": 1,
+    "difficulty": "easy"
+  },
+  {
+    "question": "What is 2 + 2?",
+    "options": ["3", "4", "5", "6"],
+    "correct": 1,
+    "difficulty": "easy"
+  },
+  {
+    "question": "Who wrote 'Romeo and Juliet'?",
+    "options": ["Charles Dickens", "William Shakespeare", "Jane Austen", "Mark Twain"],
+    "correct": 1,
+    "difficulty": "easy"
+  },
+  {
+    "question": "What is the largest ocean on Earth?",
+    "options": ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean", "Pacific Ocean"],
+    "correct": 3,
+    "difficulty": "easy"
+  },
+  {
+    "question": "In which year did World War II end?",
+    "options": ["1943", "1944", "1945", "1946"],
+    "correct": 2,
+    "difficulty": "medium"
+  },
+  {
+    "question": "What is the chemical symbol for gold?",
+    "options": ["Go", "Gd", "Au", "Ag"],
+    "correct": 2,
+    "difficulty": "medium"
+  },
+  {
+    "question": "Which programming language was created by Dennis Ritchie?",
+    "options": ["C", "Java", "Python", "C++"],
+    "correct": 0,
+    "difficulty": "medium"
+  },
+  {
+    "question": "What is the speed of light in vacuum (approximately)?",
+    "options": ["300,000 km/s", "150,000 km/s", "450,000 km/s", "600,000 km/s"],
+    "correct": 0,
+    "difficulty": "medium"
+  },
+  {
+    "question": "Who painted the Mona Lisa?",
+    "options": ["Vincent van Gogh", "Pablo Picasso", "Leonardo da Vinci", "Michelangelo"],
+    "correct": 2,
+    "difficulty": "medium"
+  },
+  {
+    "question": "What is the time complexity of binary search?",
+    "options": ["O(n)", "O(log n)", "O(n log n)", "O(n²)"],
+    "correct": 1,
+    "difficulty": "hard"
+  },
+  {
+    "question": "Which theorem states that no three positive integers a, b, and c satisfy aⁿ + bⁿ = cⁿ for n > 2?",
+    "options": ["Pythagorean Theorem", "Fermat's Last Theorem", "Euler's Theorem", "Gauss's Theorem"],
+    "correct": 1,
+    "difficulty": "hard"
+  },
+  {
+    "question": "What is the Heisenberg Uncertainty Principle primarily concerned with?",
+    "options": ["Energy conservation", "Position and momentum", "Wave-particle duality", "Quantum entanglement"],
+    "correct": 1,
+    "difficulty": "hard"
+  },
+  {
+    "question": "In computer science, what does the acronym 'NP' stand for in NP-complete?",
+    "options": ["Non-Polynomial", "Nondeterministic Polynomial", "Numerical Processing", "Network Protocol"],
+    "correct": 1,
+    "difficulty": "hard"
+  },
+  {
+    "question": "What is the name of the process by which plants convert light energy into chemical energy?",
+    "options": ["Respiration", "Photosynthesis", "Transpiration", "Fermentation"],
+    "correct": 1,
+    "difficulty": "hard"
+  }
+]
+
