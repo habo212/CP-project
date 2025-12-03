@@ -22,12 +22,23 @@ int game_init(GameState *state, QuestionBank *bank, const GameConfig *config) {
     state->game_active = false;
     state->current_player = 0;
     state->players = NULL;
+    state->used_questions = NULL;
+    state->used_count = 0;
     
     state->stats.total_questions = 0;
     state->stats.correct_answers = 0;
     state->stats.wrong_answers = 0;
     state->stats.timeouts = 0;
     state->stats.score = 0;
+    
+    if (bank != NULL && bank->count > 0) {
+        state->used_questions = (bool*)calloc(bank->count, sizeof(bool));
+        if (state->used_questions == NULL) {
+            print_error("Failed to allocate memory for used questions tracking");
+            return -1;
+        }
+        state->used_count = (int)bank->count;
+    }
     
     if (config->num_players > 1) {
         if (game_init_players(state) != 0) {
@@ -240,12 +251,19 @@ int game_run(GameState *state) {
     for (int i = 0; i < total_rounds; i++) {
         int difficulty_filter = state->config.difficulty >= 0 ? 
                                state->config.difficulty : -1;
-        Question *question = question_bank_get_random(state->question_bank, 
-                                                       difficulty_filter);
+        Question *question = question_bank_get_random_unused(state->question_bank, 
+                                                              difficulty_filter,
+                                                              state->used_questions,
+                                                              state->used_count);
         
         if (question == NULL) {
-            print_error("No questions available");
+            print_error("No more questions available");
             break;
+        }
+        
+        size_t question_idx = (size_t)(question - state->question_bank->questions);
+        if (question_idx < (size_t)state->used_count) {
+            state->used_questions[question_idx] = true;
         }
         
         int user_answer = game_ask_question(state, question);
@@ -411,6 +429,11 @@ void game_cleanup(GameState *state) {
     if (state->players != NULL) {
         free(state->players);
         state->players = NULL;
+    }
+    
+    if (state->used_questions != NULL) {
+        free(state->used_questions);
+        state->used_questions = NULL;
     }
     
     state->game_active = false;

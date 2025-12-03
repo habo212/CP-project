@@ -59,6 +59,8 @@ typedef struct {
     int current_player;            /**< Current player index (0-based) */
     Timer timer;                   /**< Timer for questions */
     bool game_active;              /**< Whether game is currently active */
+    bool *used_questions;          /**< Array tracking which questions have been asked */
+    int used_count;                /**< Number of questions already asked */
 } GameState;
 
 /**

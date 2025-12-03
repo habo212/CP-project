@@ -146,33 +146,48 @@ int question_bank_load_from_json(QuestionBank *bank, const char *filename) {
         return -1;
     }
     
-    char line[2048];
+    char buffer[8192];
+    size_t buffer_pos = 0;
     int loaded = 0;
-    int in_array = 0;
+    int in_object = 0;
+    int brace_count = 0;
     
-    while (fgets(line, sizeof(line), file) != NULL) {
-        if (line[0] == '\n' || line[0] == '#') {
+    int c;
+    while ((c = fgetc(file)) != EOF) {
+        if (buffer_pos >= sizeof(buffer) - 1) {
+            buffer_pos = 0;
+            brace_count = 0;
+            in_object = 0;
             continue;
         }
         
-        if (strstr(line, "[") != NULL) {
-            in_array = 1;
-            continue;
-        }
+        buffer[buffer_pos++] = (char)c;
         
-        if (!in_array) {
-            continue;
-        }
-        
-        if (strstr(line, "]") != NULL) {
-            break;
-        }
-        
-        Question q;
-        if (parse_json_question(line, &q) == 0) {
-            if (question_bank_add(bank, &q) == 0) {
-                loaded++;
+        if (c == '{') {
+            if (!in_object) {
+                buffer_pos = 1;
+                buffer[0] = '{';
+                in_object = 1;
+                brace_count = 1;
+            } else {
+                brace_count++;
             }
+        } else if (c == '}') {
+            brace_count--;
+            if (in_object && brace_count == 0) {
+                buffer[buffer_pos] = '\0';
+                Question q;
+                if (parse_json_question(buffer, &q) == 0) {
+                    if (question_bank_add(bank, &q) == 0) {
+                        loaded++;
+                    }
+                }
+                buffer_pos = 0;
+                in_object = 0;
+                brace_count = 0;
+            }
+        } else if (c == '[' || c == ']') {
+            continue;
         }
     }
     
@@ -229,6 +244,61 @@ Question* question_bank_get_random(QuestionBank *bank, int difficulty) {
         actual_idx = random_idx;
     }
     
+    return &bank->questions[actual_idx];
+}
+
+Question* question_bank_get_random_unused(QuestionBank *bank, int difficulty, 
+                                         const bool *used_questions, int used_count) {
+    if (bank == NULL || bank->count == 0) {
+        return NULL;
+    }
+    
+    int valid_count = 0;
+    int *valid_indices = NULL;
+    
+    if (difficulty >= 0 && difficulty < DIFFICULTY_COUNT) {
+        valid_indices = (int*)malloc(bank->count * sizeof(int));
+        if (valid_indices == NULL) {
+            return NULL;
+        }
+        
+        for (size_t i = 0; i < bank->count; i++) {
+            if (bank->questions[i].difficulty == (Difficulty)difficulty) {
+                if (used_questions == NULL || i >= (size_t)used_count || !used_questions[i]) {
+                    valid_indices[valid_count] = (int)i;
+                    valid_count++;
+                }
+            }
+        }
+        
+        if (valid_count == 0) {
+            free(valid_indices);
+            return NULL;
+        }
+    } else {
+        valid_indices = (int*)malloc(bank->count * sizeof(int));
+        if (valid_indices == NULL) {
+            return NULL;
+        }
+        
+        for (size_t i = 0; i < bank->count; i++) {
+            if (used_questions == NULL || i >= (size_t)used_count || !used_questions[i]) {
+                valid_indices[valid_count] = (int)i;
+                valid_count++;
+            }
+        }
+        
+        if (valid_count == 0) {
+            free(valid_indices);
+            return NULL;
+        }
+    }
+    
+    srand((unsigned int)time(NULL));
+    int random_idx = rand() % valid_count;
+    int actual_idx = valid_indices[random_idx];
+    
+    free(valid_indices);
     return &bank->questions[actual_idx];
 }
 

@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 /**
  * @brief Maximum length for question text
@@ -113,6 +114,18 @@ void question_bank_free(QuestionBank *bank);
  * @return Question* Pointer to question, or NULL if none found
  */
 Question* question_bank_get_random(QuestionBank *bank, int difficulty);
+
+/**
+ * @brief Get a random question excluding already used ones
+ * 
+ * @param bank Pointer to QuestionBank
+ * @param difficulty Optional difficulty filter (use -1 for any)
+ * @param used_questions Boolean array indicating which questions have been used
+ * @param used_count Number of questions already used
+ * @return Question* Pointer to question, or NULL if none found
+ */
+Question* question_bank_get_random_unused(QuestionBank *bank, int difficulty, 
+                                         const bool *used_questions, int used_count);
 
 /**
  * @brief Get difficulty name as string
