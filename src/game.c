@@ -23,21 +23,18 @@ int game_init(GameState *state, QuestionBank *bank, const GameConfig *config) {
     state->current_player = 0;
     state->players = NULL;
     
-    // Initialize stats (for single-player mode)
     state->stats.total_questions = 0;
     state->stats.correct_answers = 0;
     state->stats.wrong_answers = 0;
     state->stats.timeouts = 0;
     state->stats.score = 0;
     
-    // Initialize players if multiplayer
     if (config->num_players > 1) {
         if (game_init_players(state) != 0) {
             return -1;
         }
     }
     
-    // Initialize timer if enabled
     if (config->use_timer) {
         if (timer_init(&state->timer, config->time_per_question) != 0) {
             print_error("Failed to initialize timer");
@@ -59,7 +56,6 @@ int game_init_players(GameState *state) {
         return -1;
     }
     
-    // Initialize all players
     for (int i = 0; i < state->config.num_players; i++) {
         state->players[i].score = 0;
         state->players[i].correct_answers = 0;
@@ -96,7 +92,6 @@ int game_calculate_score(bool correct, int time_remaining, Difficulty difficulty
         return 0;
     }
     
-    // Base points by difficulty
     int base_points = 0;
     switch (difficulty) {
         case DIFFICULTY_EASY:
@@ -112,7 +107,6 @@ int game_calculate_score(bool correct, int time_remaining, Difficulty difficulty
             base_points = 10;
     }
     
-    // Bonus for answering quickly
     int time_bonus = time_remaining / 2;
     
     return base_points + time_bonus;
@@ -125,7 +119,6 @@ int game_ask_question(GameState *state, const Question *question) {
     
     clear_screen();
     
-    // Display question
     printf("\n═══════════════════════════════════════════════════════\n");
     if (state->config.num_players > 1) {
         Player *player = game_get_current_player(state);
@@ -139,13 +132,11 @@ int game_ask_question(GameState *state, const Question *question) {
     printf("  Difficulty: %s\n", difficulty_to_string(question->difficulty));
     printf("═══════════════════════════════════════════════════════\n\n");
     
-    // Display options
     for (int i = 0; i < MAX_OPTIONS && strlen(question->options[i]) > 0; i++) {
         printf("  %d. %s\n", i + 1, question->options[i]);
     }
     printf("\n");
     
-    // Start timer if enabled
     if (state->config.use_timer) {
         timer_reset(&state->timer, state->config.time_per_question);
         timer_start(&state->timer);
@@ -159,15 +150,13 @@ int game_ask_question(GameState *state, const Question *question) {
     char input[MAX_INPUT_LEN];
     int answer = 0;
     
-    // Poll for input while timer runs
     while (state->config.use_timer && timer_get_remaining(&state->timer) > 0) {
         if (timer_is_expired(&state->timer)) {
             timer_stop(&state->timer);
             printf("\n\n⏰ Time's up!\n");
-            return 0; // Timeout
+            return 0;
         }
         
-        // Check if input is available (non-blocking check)
         fd_set readfds;
         struct timeval timeout;
         FD_ZERO(&readfds);
@@ -181,7 +170,7 @@ int game_ask_question(GameState *state, const Question *question) {
                 
                 if (input[0] == 'q' || input[0] == 'Q') {
                     timer_stop(&state->timer);
-                    return -1; // Quit
+                    return -1;
                 }
                 
                 if (is_valid_integer(input, &answer)) {
@@ -196,19 +185,17 @@ int game_ask_question(GameState *state, const Question *question) {
             }
         }
         
-        // Update timer display
         int remaining = timer_get_remaining(&state->timer);
         printf("\r  Time remaining: %d seconds   ", remaining);
         fflush(stdout);
     }
     
-    // If timer is not used, just read input normally
     if (!state->config.use_timer) {
         if (read_input(input, sizeof(input)) == UTILS_SUCCESS) {
             sanitize_input(input);
             
             if (input[0] == 'q' || input[0] == 'Q') {
-                return -1; // Quit
+                return -1;
             }
             
             if (is_valid_integer(input, &answer)) {
@@ -219,7 +206,7 @@ int game_ask_question(GameState *state, const Question *question) {
         }
     }
     
-    return 0; // Timeout or invalid
+    return 0;
 }
 
 int game_run(GameState *state) {
@@ -245,15 +232,12 @@ int game_run(GameState *state) {
     
     wait_for_enter();
     
-    // Calculate total rounds (questions per player in multiplayer)
     int total_rounds = state->config.questions_per_game;
     if (state->config.num_players > 1) {
         total_rounds = state->config.questions_per_game * state->config.num_players;
     }
     
-    // Game loop
     for (int i = 0; i < total_rounds; i++) {
-        // Get random question
         int difficulty_filter = state->config.difficulty >= 0 ? 
                                state->config.difficulty : -1;
         Question *question = question_bank_get_random(state->question_bank, 
@@ -264,7 +248,6 @@ int game_run(GameState *state) {
             break;
         }
         
-        // Ask question
         int user_answer = game_ask_question(state, question);
         
         if (user_answer == -1) {
@@ -272,18 +255,15 @@ int game_run(GameState *state) {
             break;
         }
         
-        // Check answer
         bool correct = (user_answer == question->correct_answer + 1);
         int time_remaining = state->config.use_timer ? 
                             timer_get_remaining(&state->timer) : 
                             state->config.time_per_question;
         
-        // Update stats for current player
         if (state->config.num_players > 1) {
             Player *player = game_get_current_player(state);
             if (player != NULL) {
                 if (user_answer == 0) {
-                    // Timeout
                     player->timeouts++;
                     printf("\n❌ Time's up! The correct answer was: %d. %s\n",
                            question->correct_answer + 1,
@@ -302,10 +282,8 @@ int game_run(GameState *state) {
                 }
             }
         } else {
-            // Single-player mode
             state->stats.total_questions++;
             if (user_answer == 0) {
-                // Timeout
                 state->stats.timeouts++;
                 printf("\n❌ Time's up! The correct answer was: %d. %s\n",
                        question->correct_answer + 1,
@@ -324,7 +302,6 @@ int game_run(GameState *state) {
             }
         }
         
-        // Show current scores in multiplayer
         if (state->config.num_players > 1) {
             printf("\nCurrent Scores:\n");
             for (int p = 0; p < state->config.num_players; p++) {
@@ -337,7 +314,6 @@ int game_run(GameState *state) {
         
         wait_for_enter();
         
-        // Move to next player in multiplayer mode
         if (state->config.num_players > 1) {
             game_next_player(state);
         }
@@ -360,7 +336,6 @@ void game_display_stats(const GameState *state) {
     printf("═══════════════════════════════════════════════════════\n\n");
     
     if (state->config.num_players > 1) {
-        // Multiplayer stats
         printf("Final Scores:\n\n");
         for (int i = 0; i < state->config.num_players; i++) {
             const char *name = state->players[i].name[0] != '\0' ? 
@@ -385,7 +360,6 @@ void game_display_stats(const GameState *state) {
             printf("\n");
         }
         
-        // Find winner
         int max_score = state->players[0].score;
         int winner_idx = 0;
         bool tie = false;
@@ -409,7 +383,6 @@ void game_display_stats(const GameState *state) {
             printf("🤝 It's a tie!\n");
         }
     } else {
-        // Single-player stats
         printf("  Total Questions: %d\n", state->stats.total_questions);
         printf("  Correct Answers: %d\n", state->stats.correct_answers);
         printf("  Wrong Answers: %d\n", state->stats.wrong_answers);

@@ -28,7 +28,6 @@ static void* timer_thread_func(void *arg) {
     timer->remaining = timer->seconds;
     pthread_mutex_unlock(&timer->mutex);
     
-    // Countdown loop
     while (timer->remaining > 0) {
         sleep(1);
         
@@ -41,7 +40,6 @@ static void* timer_thread_func(void *arg) {
         pthread_mutex_unlock(&timer->mutex);
     }
     
-    // Mark as expired if we reached zero
     pthread_mutex_lock(&timer->mutex);
     if (timer->remaining == 0) {
         timer->expired = true;
@@ -102,7 +100,6 @@ int timer_stop(Timer *timer) {
     timer->running = false;
     pthread_mutex_unlock(&timer->mutex);
     
-    // Wait for thread to finish
     pthread_join(timer->thread, NULL);
     
     return 0;
@@ -137,7 +134,6 @@ int timer_reset(Timer *timer, int seconds) {
         return -1;
     }
     
-    // Stop current timer if running
     if (timer->running) {
         timer_stop(timer);
     }
@@ -156,7 +152,6 @@ void timer_cleanup(Timer *timer) {
         return;
     }
     
-    // Stop timer if running
     if (timer->running) {
         timer_stop(timer);
     }

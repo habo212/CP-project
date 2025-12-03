@@ -136,7 +136,6 @@ static int display_menu(void) {
  * @return int Exit code (0 on success)
  */
 int main(int argc, char *argv[]) {
-    // Parse command line arguments
     char questions_file[256] = DEFAULT_QUESTIONS_FILE;
     
     if (argc > 1) {
@@ -144,14 +143,12 @@ int main(int argc, char *argv[]) {
         questions_file[sizeof(questions_file) - 1] = '\0';
     }
     
-    // Initialize question bank
     QuestionBank bank;
     if (question_bank_init(&bank) != 0) {
         print_error("Failed to initialize question bank");
         return EXIT_FAILURE;
     }
     
-    // Load questions
     printf("Loading questions from: %s\n", questions_file);
     int loaded = question_bank_load_from_json(&bank, questions_file);
     
@@ -164,7 +161,6 @@ int main(int argc, char *argv[]) {
     
     print_success("Loaded %d questions", loaded);
     
-    // Main game loop
     bool running = true;
     while (running) {
         int choice = display_menu();
@@ -180,7 +176,6 @@ int main(int argc, char *argv[]) {
             continue;
         }
         
-        // Get number of players
         int num_players = get_num_players();
         if (num_players == 0) {
             printf("\nInvalid choice. Returning to main menu.\n");
@@ -188,7 +183,6 @@ int main(int argc, char *argv[]) {
             continue;
         }
         
-        // Configure game based on choice
         GameConfig config;
         config.questions_per_game = 5;
         config.time_per_question = 30;
@@ -206,11 +200,10 @@ int main(int argc, char *argv[]) {
                 config.difficulty = DIFFICULTY_HARD;
                 break;
             case 4:
-                config.difficulty = -1; // Any difficulty
+                config.difficulty = -1;
                 break;
         }
         
-        // Initialize and run game
         GameState game;
         if (game_init(&game, &bank, &config) != 0) {
             print_error("Failed to initialize game");
@@ -218,7 +211,6 @@ int main(int argc, char *argv[]) {
             continue;
         }
         
-        // Get player names if multiplayer
         if (config.num_players > 1) {
             get_player_names(&game);
         }
@@ -229,7 +221,6 @@ int main(int argc, char *argv[]) {
         wait_for_enter();
     }
     
-    // Cleanup
     question_bank_free(&bank);
     
     printf("\nThank you for playing Terminal Trivia Game!\n");

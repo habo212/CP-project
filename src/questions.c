@@ -8,23 +8,15 @@
 #include <time.h>
 #include <ctype.h>
 
-// Simple JSON parser for our specific format
-// Note: This is a simplified parser for educational purposes
-// In production, you'd use a proper JSON library like cJSON
-
 static int parse_json_question(const char *json_line, Question *q) {
     if (json_line == NULL || q == NULL) {
         return -1;
     }
     
-    // Simple JSON parsing - looks for key-value pairs
-    // Format: {"question":"...", "options":["...","..."], "correct":0, "difficulty":"easy"}
-    
     char line[1024];
     strncpy(line, json_line, sizeof(line) - 1);
     line[sizeof(line) - 1] = '\0';
     
-    // Extract question
     char *q_start = strstr(line, "\"question\"");
     if (q_start == NULL) return -1;
     q_start = strchr(q_start, ':');
@@ -39,7 +31,6 @@ static int parse_json_question(const char *json_line, Question *q) {
     q->question[MAX_QUESTION_LEN - 1] = '\0';
     *q_end = '"';
     
-    // Extract options
     char *opt_start = strstr(line, "\"options\"");
     if (opt_start == NULL) return -1;
     opt_start = strchr(opt_start, '[');
@@ -62,7 +53,6 @@ static int parse_json_question(const char *json_line, Question *q) {
         if (*opt_start == ']') break;
     }
     
-    // Extract correct answer
     char *corr_start = strstr(line, "\"correct\"");
     if (corr_start == NULL) return -1;
     corr_start = strchr(corr_start, ':');
@@ -74,7 +64,6 @@ static int parse_json_question(const char *json_line, Question *q) {
         return -1;
     }
     
-    // Extract difficulty
     char *diff_start = strstr(line, "\"difficulty\"");
     if (diff_start == NULL) {
         q->difficulty = DIFFICULTY_EASY;
@@ -101,7 +90,6 @@ static int parse_json_question(const char *json_line, Question *q) {
         }
     }
     
-    // Default category
     q->category = CATEGORY_GENERAL;
     
     return 0;
@@ -129,7 +117,6 @@ int question_bank_add(QuestionBank *bank, const Question *question) {
         return -1;
     }
     
-    // Resize if needed
     if (bank->count >= bank->capacity) {
         size_t new_capacity = bank->capacity * 2;
         Question *new_questions = (Question*)realloc(bank->questions, 
@@ -163,14 +150,11 @@ int question_bank_load_from_json(QuestionBank *bank, const char *filename) {
     int loaded = 0;
     int in_array = 0;
     
-    // Read file line by line
     while (fgets(line, sizeof(line), file) != NULL) {
-        // Skip empty lines and comments
         if (line[0] == '\n' || line[0] == '#') {
             continue;
         }
         
-        // Check if we're entering the questions array
         if (strstr(line, "[") != NULL) {
             in_array = 1;
             continue;
@@ -180,12 +164,10 @@ int question_bank_load_from_json(QuestionBank *bank, const char *filename) {
             continue;
         }
         
-        // Check if we're leaving the array
         if (strstr(line, "]") != NULL) {
             break;
         }
         
-        // Try to parse a question
         Question q;
         if (parse_json_question(line, &q) == 0) {
             if (question_bank_add(bank, &q) == 0) {
@@ -212,7 +194,6 @@ Question* question_bank_get_random(QuestionBank *bank, int difficulty) {
         return NULL;
     }
     
-    // Filter by difficulty if specified
     int valid_count = 0;
     int *valid_indices = NULL;
     
@@ -237,7 +218,6 @@ Question* question_bank_get_random(QuestionBank *bank, int difficulty) {
         valid_count = (int)bank->count;
     }
     
-    // Get random index
     srand((unsigned int)time(NULL));
     int random_idx = rand() % valid_count;
     

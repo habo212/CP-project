@@ -20,7 +20,6 @@ UtilsError read_input(char *buffer, size_t size) {
         return UTILS_ERROR_IO_FAILED;
     }
     
-    // Remove newline if present
     size_t len = strlen(buffer);
     if (len > 0 && buffer[len - 1] == '\n') {
         buffer[len - 1] = '\0';
@@ -34,18 +33,15 @@ UtilsError sanitize_input(char *str) {
         return UTILS_ERROR_NULL_POINTER;
     }
     
-    // Trim leading whitespace
     char *start = str;
     while (isspace((unsigned char)*start)) {
         start++;
     }
     
-    // Move trimmed string to beginning
     if (start != str) {
         memmove(str, start, strlen(start) + 1);
     }
     
-    // Trim trailing whitespace
     size_t len = strlen(str);
     while (len > 0 && isspace((unsigned char)str[len - 1])) {
         str[len - 1] = '\0';
@@ -63,7 +59,6 @@ int is_valid_integer(const char *str, int *value) {
     char *endptr;
     long num = strtol(str, &endptr, 10);
     
-    // Check if entire string was consumed and within int range
     if (*endptr != '\0' || num < INT_MIN || num > INT_MAX) {
         return 0;
     }
